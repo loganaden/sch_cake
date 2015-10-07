@@ -180,6 +180,7 @@ struct cake_sched_data {
 	u32		rate_bps;
 	u16		rate_flags;
 	short	rate_overhead;
+	u32		interval;
 
 	/* resource tracking */
 	u32		buffer_used;
@@ -774,6 +775,7 @@ static const struct nla_policy cake_policy[TCA_CAKE_MAX + 1] = {
 	[TCA_CAKE_ATM]           = { .type = NLA_U32 },
 	[TCA_CAKE_FLOW_MODE]     = { .type = NLA_U32 },
 	[TCA_CAKE_OVERHEAD]      = { .type = NLA_U32 },
+	[TCA_CAKE_RTT]           = { .type = NLA_U32 },
 };
 
 static void cake_set_rate(struct cake_bin_data *b, u64 rate, u32 mtu,
@@ -1129,6 +1131,9 @@ static int cake_change(struct Qdisc *sch, struct nlattr *opt)
 	if (tb[TCA_CAKE_OVERHEAD])
 		q->rate_overhead = nla_get_u32(tb[TCA_CAKE_OVERHEAD]);
 
+	if (tb[TCA_CAKE_RTT])
+		q->interval = nla_get_u32(tb[TCA_CAKE_RTT]);
+
 	if (q->bins) {
 		sch_tree_lock(sch);
 		cake_reconfigure(sch);
@@ -1182,6 +1187,8 @@ static int cake_init(struct Qdisc *sch, struct nlattr *opt)
 	q->flow_mode  = CAKE_FLOW_FLOWS;
 
 	q->rate_bps = 0; /* unlimited by default */
+
+	q->interval = 100; /* 100ms default */
 
 	q->cur_bin = 0;
 	q->cur_flow  = 0;
