@@ -67,7 +67,7 @@
  * - An overall bandwidth shaper, to move the bottleneck away
  *   from dumb CPE equipment and bloated MACs.  This operates
  *   in deficit mode (as in sch_fq), eliminating the need for
- *   any sort of burst parameter (eg. token buxket depth).
+ *   any sort of burst parameter (eg. token bucket depth).
  *   Burst support is limited to that necessary to overcome
  *   scheduling latency.
  *
@@ -222,7 +222,7 @@ enum {
 static inline unsigned int
 cake_hash(struct cake_bin_data *q, const struct sk_buff *skb, int flow_mode)
 {
-#if KERNEL_VERSION(4, 2, 0) >= LINUX_VERSION_CODE
+#if KERNEL_VERSION(4, 2, 0) > LINUX_VERSION_CODE
 	struct flow_keys keys;
 #else
 	struct flow_keys keys, host_keys;
@@ -233,7 +233,7 @@ cake_hash(struct cake_bin_data *q, const struct sk_buff *skb, int flow_mode)
 		     q->flows_cnt < CAKE_SET_WAYS))
 		return 0;
 
-#if  KERNEL_VERSION(4, 2, 0) >= LINUX_VERSION_CODE
+#if  KERNEL_VERSION(4, 2, 0) > LINUX_VERSION_CODE
 	skb_flow_dissect(skb, &keys);
 
 	host_hash = jhash_3words(
@@ -807,7 +807,7 @@ static void cake_set_rate(struct cake_bin_data *b, u64 rate, u32 mtu,
 	byte_target_ns = (byte_target * rate_ns) >> rate_shft;
 
 	b->cparams.target = max(byte_target_ns, ns_target);
-	b->cparams.interval = max(MS2TIME(100) +
+	b->cparams.interval = max(rtt_est_ns +
 				     b->cparams.target - ns_target,
 				     b->cparams.target * 8);
 	b->cparams.threshold = (b->cparams.target >> 15) *
