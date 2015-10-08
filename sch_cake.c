@@ -829,7 +829,7 @@ static void cake_config_besteffort(struct Qdisc *sch)
 	for (i = 0; i < 64; i++)
 		q->bin_index[i] = 0;
 
-	cake_set_rate(b, rate, mtu, MS2TIME(5), MS2TIME(100));
+	cake_set_rate(b, rate, mtu, MS2TIME(5), MS2TIME(q->interval));
 	b->bin_quantum_band = 65535;
 	b->bin_quantum_prio = 65535;
 }
@@ -852,7 +852,7 @@ static void cake_config_precedence(struct Qdisc *sch)
 	for (i = 0; i < q->bin_cnt; i++) {
 		struct cake_bin_data *b = &q->bins[i];
 
-		cake_set_rate(b, rate, mtu, MS2TIME(5), MS2TIME(100));
+		cake_set_rate(b, rate, mtu, MS2TIME(5), MS2TIME(q->interval));
 
 		b->bin_quantum_prio = max_t(u16, 1U, quantum1);
 		b->bin_quantum_band = max_t(u16, 1U, quantum2);
@@ -965,7 +965,7 @@ static void cake_config_diffserv8(struct Qdisc *sch)
 	for (i = 0; i < q->bin_cnt; i++) {
 		struct cake_bin_data *b = &q->bins[i];
 
-		cake_set_rate(b, rate, mtu, MS2TIME(5), MS2TIME(100));
+		cake_set_rate(b, rate, mtu, MS2TIME(5), MS2TIME(q->interval));
 
 		b->bin_quantum_prio = max_t(u16, 1U, quantum1);
 		b->bin_quantum_band = max_t(u16, 1U, quantum2);
@@ -1027,13 +1027,14 @@ static void cake_config_diffserv4(struct Qdisc *sch)
 	}
 
 	/* class characteristics */
-	cake_set_rate(&q->bins[0], rate, mtu, MS2TIME(5), MS2TIME(100));
+	cake_set_rate(&q->bins[0], rate, mtu, MS2TIME(5),
+		      MS2TIME(q->interval));
 	cake_set_rate(&q->bins[1], rate - (rate >> 4), mtu, MS2TIME(5),
-		      MS2TIME(100));
+		      MS2TIME(q->interval));
 	cake_set_rate(&q->bins[2], rate - (rate >> 2), mtu, MS2TIME(5),
-		      MS2TIME(100));
+		      MS2TIME(q->interval));
 	cake_set_rate(&q->bins[3], rate >> 2, mtu, MS2TIME(5),
-		      MS2TIME(100));
+		      MS2TIME(q->interval));
 
 	/* priority weights */
 	q->bins[0].bin_quantum_prio = quantum >> 4;
